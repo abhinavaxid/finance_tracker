@@ -1,0 +1,213 @@
+# =========================================
+# SMART EXPENSE TRACKER - APPLICATION CONFIG
+# =========================================
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+    session:
+      timeout: 30m
+      cookie:
+        name: EXPENSE_TRACKER_SESSION
+        http-only: true
+        secure: false # Set to true in production with HTTPS
+        same-site: lax
+
+spring:
+  application:
+    name: smart-expense-tracker
+
+  # =========================================
+  # DATABASE CONFIGURATION
+  # =========================================
+  datasource:
+    url: jdbc:postgresql://localhost:5432/expense_tracker_db
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate # Use 'validate' in production, 'update' in dev
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQL95Dialect
+        format_sql: true
+        use_sql_comments: true
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+  # =========================================
+  # REDIS CONFIGURATION (Spring Session)
+  # =========================================
+  redis:
+    host: localhost
+    port: 6379
+    password: # Leave empty if no password
+    timeout: 60000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 2
+        max-wait: -1ms
+
+  session:
+    store-type: redis
+    timeout: 30m
+    redis:
+      flush-mode: on_save
+      namespace: spring:session:expense-tracker
+
+  # =========================================
+  # EMAIL CONFIGURATION (SMTP)
+  # =========================================
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: your-email@gmail.com
+    password: your-app-password
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+    default-encoding: UTF-8
+
+  # =========================================
+  # FILE UPLOAD CONFIGURATION
+  # =========================================
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+      file-size-threshold: 2KB
+
+  # =========================================
+  # JACKSON CONFIGURATION
+  # =========================================
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+      indent-output: true
+    deserialization:
+      fail-on-unknown-properties: false
+    default-property-inclusion: non_null
+
+# =========================================
+# APPLICATION CUSTOM PROPERTIES
+# =========================================
+app:
+  name: Smart Expense Tracker
+  version: 1.0.0
+  
+  # File Storage
+  file-storage:
+    upload-dir: ./uploads/receipts
+    max-file-size: 10485760 # 10MB in bytes
+    allowed-extensions: jpg,jpeg,png,pdf,gif
+  
+  # Email Settings
+  email:
+    from: noreply@expensetracker.com
+    from-name: Smart Expense Tracker
+    enabled: true
+    
+  # Budget Alert Thresholds
+  budget:
+    default-alert-threshold: 80
+    check-interval-cron: "0 0 * * * ?" # Every hour
+    
+  # Recurring Transaction Processing
+  recurring:
+    process-cron: "0 0 0 * * ?" # Daily at midnight
+    
+  # Insights Generation
+  insights:
+    generation-cron: "0 0 1 * * ?" # Daily at 1 AM
+    
+  # Monthly Summary Email
+  monthly-summary:
+    send-cron: "0 0 9 1 * ?" # 1st day of month at 9 AM
+    
+  # Security
+  security:
+    max-login-attempts: 5
+    account-lock-duration: 30 # minutes
+    password-min-length: 8
+    
+  # Pagination
+  pagination:
+    default-page-size: 20
+    max-page-size: 100
+
+# =========================================
+# SPRINGDOC / SWAGGER CONFIGURATION
+# =========================================
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    doc-expansion: none
+    filter: true
+    display-request-duration: true
+  show-actuator: false
+
+# =========================================
+# ACTUATOR CONFIGURATION
+# =========================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+  health:
+    redis:
+      enabled: true
+    db:
+      enabled: true
+
+# =========================================
+# LOGGING CONFIGURATION
+# =========================================
+logging:
+  level:
+    root: INFO
+    com.financetracker: DEBUG
+    org.springframework.web: INFO
+    org.springframework.security: DEBUG
+    org.hibernate: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/expense-tracker.log
+    max-size: 10MB
+    max-history: 30

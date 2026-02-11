@@ -1,0 +1,34 @@
+# Development Profile Configuration
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/expense_tracker_dev
+    username: postgres
+    password: postgres
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  
+  mail:
+    # Use MailHog or similar for testing in dev
+    host: localhost
+    port: 1025
+    username: 
+    password: 
+
+server:
+  servlet:
+    session:
+      cookie:
+        secure: false
+
+app:
+  email:
+    enabled: false # Disable real emails in dev
+
+logging:
+  level:
+    com.financetracker: DEBUG
+    org.hibernate.SQL: DEBUG

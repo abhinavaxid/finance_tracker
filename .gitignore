@@ -1,0 +1,39 @@
+# Maven / Java
+target/
+*.log
+*.tmp
+*.bak
+*.swp
+.DS_Store
+.settings/
+.classpath
+.project
+*.iml
+.idea/
+*.ipr
+*.iws
+
+# Eclipse
+.metadata/
+
+# Intellij
+out/
+
+# VSCode
+.vscode/
+
+# OS
+Thumbs.db
+desktop.ini
+
+# Application
+backend/logs/
+
+# Build
+build/
+
+# Credentials
+.env
+
+# Mac
+*.DS_Store
