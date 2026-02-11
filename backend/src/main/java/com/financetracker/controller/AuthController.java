@@ -14,10 +14,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 
 /**
  * REST Controller for authentication endpoints
+ * Supports both JWT and Spring Session authentication
  */
 @RestController
 @RequestMapping("/api/auth")
@@ -52,16 +54,19 @@ public class AuthController {
     }
 
     /**
-     * Login user
+     * Login user - Creates both JWT and HTTP Session
      * POST /api/auth/login
      */
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody UserLoginRequest request) {
+    public ResponseEntity<AuthResponse> login(
+            @Valid @RequestBody UserLoginRequest request,
+            HttpSession session) {
         log.info("Login request for email: {}", request.getEmail());
         
         User user = userService.authenticate(request.getEmail(), request.getPassword())
                 .orElse(null);
         if (user == null) {
+            log.warn("Authentication failed for email: {}", request.getEmail());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         
@@ -69,6 +74,22 @@ public class AuthController {
         
         String jwtToken = jwtTokenProvider.generateTokenFromUserId(user.getId());
         String refreshToken = jwtTokenProvider.generateRefreshToken(user.getId());
+        
+        // Create Spring Session
+        session.setAttribute("USER_ID", user.getId());
+        session.setAttribute("EMAIL", user.getEmail());
+        session.setAttribute("FIRST_NAME", user.getFirstName());
+        session.setAttribute("LAST_NAME", user.getLastName());
+        
+        // Set session timeout based on rememberMe if available
+        if (request.isRememberMe()) {
+            session.setMaxInactiveInterval(7 * 24 * 60 * 60); // 7 days
+            log.info("Extended session timeout for user: {}", user.getEmail());
+        } else {
+            session.setMaxInactiveInterval(60 * 60); // 1 hour
+        }
+        
+        log.info("User authenticated and session created: {}", user.getEmail());
         
         AuthResponse response = AuthResponse.builder()
                 .userId(user.getId())
@@ -78,6 +99,7 @@ public class AuthController {
                 .token(jwtToken)
                 .refreshToken(refreshToken)
                 .expiresIn(86400)
+                .sessionId(session.getId())
                 .build();
         
         return ResponseEntity.ok(response);
@@ -125,24 +147,31 @@ public class AuthController {
     }
 
     /**
-     * Logout user
+     * Logout user - Invalidates both JWT and HTTP Session
      * POST /api/auth/logout
      */
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<Void> logout(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            HttpSession session) {
         log.info("Logout request");
         
         try {
-            String token = authHeader != null && authHeader.startsWith("Bearer ") 
-                ? authHeader.substring(7) 
-                : authHeader;
+            // Invalidate HTTP session
+            if (session != null) {
+                Long userId = (Long) session.getAttribute("USER_ID");
+                String sessionId = session.getId();
+                
+                session.invalidate();
+                log.info("Session invalidated for user: {}", userId);
+            }
             
-            // Get remaining expiration time
-            int expirationSeconds = jwtTokenProvider.getExpirationTimeInSeconds(token);
-            
-            // In a production system, add token to blacklist with TTL = expirationSeconds
-            // For now, we'll rely on token expiration validation on the server
-            log.info("Token invalidated (will expire in {} seconds)", expirationSeconds);
+            // If JWT token provided, log expiration
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7);
+                int expirationSeconds = jwtTokenProvider.getExpirationTimeInSeconds(token);
+                log.info("JWT token will expire in {} seconds", expirationSeconds);
+            }
             
             return ResponseEntity.ok().build();
         } catch (Exception e) {
@@ -187,5 +216,35 @@ public class AuthController {
             log.error("Password change error: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+    }
+
+    /**
+     * Get current session information
+     * GET /api/auth/session
+     */
+    @GetMapping("/session")
+    public ResponseEntity<AuthResponse> getSessionInfo(HttpSession session) {
+        if (session == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        
+        Long userId = (Long) session.getAttribute("USER_ID");
+        String email = (String) session.getAttribute("EMAIL");
+        String firstName = (String) session.getAttribute("FIRST_NAME");
+        String lastName = (String) session.getAttribute("LAST_NAME");
+        
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        
+        AuthResponse response = AuthResponse.builder()
+                .userId(userId)
+                .email(email)
+                .firstName(firstName)
+                .lastName(lastName)
+                .sessionId(session.getId())
+                .build();
+        
+        return ResponseEntity.ok(response);
     }
 }

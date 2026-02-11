@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * Response DTO for authentication
+ * Contains JWT tokens, session info, and user details
  */
 @Data
 @Builder
@@ -33,4 +34,11 @@ public class AuthResponse {
     
     @JsonProperty("expires_in")
     private Integer expiresIn;
+    
+    @JsonProperty("token_type")
+    @Builder.Default
+    private String tokenType = "Bearer";
+    
+    @JsonProperty("session_id")
+    private String sessionId;
 }
