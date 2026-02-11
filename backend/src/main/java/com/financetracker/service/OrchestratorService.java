@@ -56,7 +56,7 @@ public class OrchestratorService {
      * Weekly task: Send weekly summary emails
      * Scheduled to run every Monday at 08:00 AM
      */
-    @Scheduled(cron = "0 8 * * MON ?")
+    @Scheduled(cron = "0 0 8 * * MON ?")
     public void weeklySendSummaryEmails() {
         try {
             log.info("Starting weekly summary email sending...");
@@ -86,7 +86,7 @@ public class OrchestratorService {
      * Perform database cleanup
      * Scheduled to run weekly on Saturday at 03:00 AM
      */
-    @Scheduled(cron = "0 3 * * SAT ?")
+    @Scheduled(cron = "0 0 3 * * SAT ?")
     public void performCleanup() {
         try {
             log.info("Starting database cleanup...");

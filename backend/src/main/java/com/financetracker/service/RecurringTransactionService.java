@@ -1,9 +1,12 @@
 package com.financetracker.service;
 
+import com.financetracker.model.Category;
 import com.financetracker.model.RecurringTransaction;
 import com.financetracker.model.Transaction;
 import com.financetracker.model.User;
 import com.financetracker.model.enums.Frequency;
+import com.financetracker.model.enums.TransactionType;
+import com.financetracker.repository.CategoryRepository;
 import com.financetracker.repository.RecurringTransactionRepository;
 import com.financetracker.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,6 +30,42 @@ public class RecurringTransactionService {
 
     private final RecurringTransactionRepository recurringTransactionRepository;
     private final TransactionRepository transactionRepository;
+    private final CategoryRepository categoryRepository;
+
+    /**
+     * Create a new recurring transaction
+     */
+    public RecurringTransaction createRecurringTransaction(
+            User user,
+            Long categoryId,
+            BigDecimal amount,
+            String type,
+            String frequency,
+            LocalDate startDate,
+            LocalDate endDate,
+            String description,
+            String paymentMethod) {
+
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new IllegalArgumentException("Category not found"));
+
+        RecurringTransaction recurring = RecurringTransaction.builder()
+                .user(user)
+                .category(category)
+                .amount(amount)
+                .type(TransactionType.valueOf(type.toUpperCase()))
+                .frequency(Frequency.valueOf(frequency.toUpperCase()))
+                .startDate(startDate)
+                .endDate(endDate)
+                .nextOccurrence(startDate)
+                .description(description)
+                .paymentMethod(com.financetracker.model.enums.PaymentMethod.valueOf(paymentMethod.toUpperCase()))
+                .isActive(true)
+                .build();
+
+        log.info("Creating recurring transaction for user: {} with frequency: {}", user.getId(), frequency);
+        return recurringTransactionRepository.save(recurring);
+    }
 
     /**
      * Get recurring transaction by ID

@@ -286,4 +286,24 @@ public class AnalyticsService {
         insightRepository.save(insight);
         log.info("Insight dismissed: {}", insightId);
     }
+
+    /**
+     * Generate analytics report
+     */
+    public String generateReport(User user, LocalDate startDate, LocalDate endDate) {
+        log.info("Generating report for user: {} from {} to {}", user.getId(), startDate, endDate);
+        
+        AnalyticsSummaryResponse analytics = getCustomPeriodAnalytics(user, startDate, endDate);
+        
+        StringBuilder report = new StringBuilder();
+        report.append("FINANCIAL REPORT\n");
+        report.append("================\n");
+        report.append("Period: ").append(analytics.getPeriod()).append("\n");
+        report.append("Total Income: $").append(analytics.getTotalIncome()).append("\n");
+        report.append("Total Expense: $").append(analytics.getTotalExpense()).append("\n");
+        report.append("Net Savings: $").append(analytics.getNetSavings()).append("\n");
+        report.append("Savings Rate: ").append(analytics.getSavingsPercentage()).append("%\n");
+        
+        return report.toString();
+    }
 }

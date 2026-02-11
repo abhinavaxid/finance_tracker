@@ -12,6 +12,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -113,6 +114,37 @@ public class AuditLogService {
                         auditLog.getAction() == AuditAction.FAILED_LOGIN)
                 .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
                 .collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
+     * Export audit logs as CSV
+     */
+    @Transactional(readOnly = true)
+    public String exportAuditLogs(User user, LocalDate startDate, LocalDate endDate) {
+        List<AuditLog> logs = auditLogRepository.findAll().stream()
+                .filter(auditLog -> auditLog.getUser() != null && auditLog.getUser().getId().equals(user.getId()) &&
+                        auditLog.getCreatedAt().toLocalDate().isAfter(startDate.minusDays(1)) &&
+                        auditLog.getCreatedAt().toLocalDate().isBefore(endDate.plusDays(1)))
+                .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
+                .collect(java.util.stream.Collectors.toList());
+
+        StringBuilder csv = new StringBuilder();
+        csv.append("Action,EntityType,EntityId,OldValue,NewValue,IpAddress,UserAgent,CreatedAt\n");
+
+        for (AuditLog log : logs) {
+            csv.append(String.format("%s,%s,%d,%s,%s,%s,%s,%s\n",
+                    log.getAction(),
+                    log.getEntityType(),
+                    log.getEntityId(),
+                    log.getOldValue() != null ? log.getOldValue() : "",
+                    log.getNewValue() != null ? log.getNewValue() : "",
+                    log.getIpAddress(),
+                    log.getUserAgent(),
+                    log.getCreatedAt()
+            ));
+        }
+
+        return csv.toString();
     }
 
     /**
