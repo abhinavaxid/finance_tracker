@@ -40,6 +40,10 @@ public interface BudgetAlertRepository extends JpaRepository<BudgetAlert, Long> 
     /**
      * Find recent alerts for user
      */
-    @Query("SELECT ba FROM BudgetAlert ba WHERE ba.user = :user ORDER BY ba.sentAt DESC LIMIT 10")
-    List<BudgetAlert> findRecentAlerts(@Param("user") User user);
+    List<BudgetAlert> findTop10ByUserOrderBySentAtDesc(User user);
+    
+    // Alias method for backward compatibility
+    default List<BudgetAlert> findRecentAlerts(User user) {
+        return findTop10ByUserOrderBySentAtDesc(user);
+    }
 }

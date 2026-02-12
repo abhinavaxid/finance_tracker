@@ -53,6 +53,10 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     /**
      * Find recent notifications for user
      */
-    @Query("SELECT n FROM Notification n WHERE n.user = :user ORDER BY n.createdAt DESC LIMIT 5")
-    List<Notification> findRecentNotifications(@Param("user") User user);
+    List<Notification> findTop5ByUserOrderByCreatedAtDesc(User user);
+    
+    // Alias method for backward compatibility
+    default List<Notification> findRecentNotifications(User user) {
+        return findTop5ByUserOrderByCreatedAtDesc(user);
+    }
 }

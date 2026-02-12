@@ -1,11 +1,10 @@
 package com.financetracker.config;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.session.FindByIndexNameSessionRepository;
-import org.springframework.session.data.redis.RedisIndexedSessionRepository;
 import org.springframework.session.security.SpringSessionBackedSessionRegistry;
 import org.springframework.session.web.http.CookieHttpSessionIdResolver;
 import org.springframework.session.web.http.CookieSerializer;
@@ -18,6 +17,7 @@ import org.springframework.session.web.http.HttpSessionIdResolver;
  * Supports session tracking and concurrent session control
  */
 @Configuration
+@ConditionalOnProperty(name = "spring.session.store-type", havingValue = "redis")
 public class SessionConfig {
 
     /**

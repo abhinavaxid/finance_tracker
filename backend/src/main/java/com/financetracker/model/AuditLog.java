@@ -56,13 +56,13 @@ public class AuditLog {
     /**
      * Old values in JSON format (can be NULL for CREATE actions)
      */
-    @Column(name = "old_value", columnDefinition = "TEXT")
+    @Column(name = "old_value", columnDefinition = "jsonb")
     private String oldValue;
 
     /**
      * New values in JSON format
      */
-    @Column(name = "new_value", columnDefinition = "TEXT")
+    @Column(name = "new_value", columnDefinition = "jsonb")
     private String newValue;
 
     @Column(name = "ip_address", length = 45)

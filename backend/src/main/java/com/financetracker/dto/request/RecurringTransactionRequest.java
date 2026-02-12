@@ -1,5 +1,6 @@
 package com.financetracker.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,6 +11,7 @@ import java.time.LocalDate;
 
 /**
  * DTO for recurring transaction creation/update request
+ * Validates recurring transaction details including frequency and dates
  */
 @Data
 @NoArgsConstructor
@@ -18,6 +20,7 @@ public class RecurringTransactionRequest {
 
     @NotNull(message = "Category ID is required")
     @Positive(message = "Category ID must be positive")
+    @JsonProperty("category_id")
     private Long categoryId;
 
     @NotNull(message = "Amount is required")
@@ -29,7 +32,8 @@ public class RecurringTransactionRequest {
     @Pattern(regexp = "INCOME|EXPENSE", message = "Type must be INCOME or EXPENSE")
     private String type;
 
-    @Size(max = 500, message = "Description must not exceed 500 characters")
+    @Size(min = 3, max = 500, message = "Description must be between 3 and 500 characters")
+    @NotBlank(message = "Description is required")
     private String description;
 
     @NotBlank(message = "Frequency is required")
@@ -39,15 +43,21 @@ public class RecurringTransactionRequest {
 
     @NotNull(message = "Start date is required")
     @PastOrPresent(message = "Start date cannot be in the future")
+    @JsonProperty("start_date")
     private LocalDate startDate;
 
+    @JsonProperty("end_date")
     private LocalDate endDate;
 
-    @Min(1)
-    @Max(31)
+    @Min(value = 1, message = "Day of month must be between 1 and 31")
+    @Max(value = 31, message = "Day of month must be between 1 and 31")
+    @JsonProperty("day_of_month")
     private Integer dayOfMonth;
 
     @Pattern(regexp = "CASH|CREDIT_CARD|DEBIT_CARD|BANK_TRANSFER|UPI|WALLET|OTHER", 
              message = "Invalid payment method")
+    @JsonProperty("payment_method")
     private String paymentMethod;
+
+    private Boolean active = true;
 }

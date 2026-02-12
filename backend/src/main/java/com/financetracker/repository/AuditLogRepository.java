@@ -62,8 +62,12 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
     /**
      * Find recent user logins
      */
-    @Query("SELECT al FROM AuditLog al WHERE al.user = :user AND al.action = 'LOGIN' ORDER BY al.createdAt DESC LIMIT 10")
-    List<AuditLog> findRecentLogins(@Param("user") User user);
+    List<AuditLog> findTop10ByUserAndActionOrderByCreatedAtDesc(User user, AuditAction action);
+    
+    // Alias method for backward compatibility  
+    default List<AuditLog> findRecentLogins(User user) {
+        return findTop10ByUserAndActionOrderByCreatedAtDesc(user, AuditAction.LOGIN);
+    }
 
     /**
      * Find failed login attempts

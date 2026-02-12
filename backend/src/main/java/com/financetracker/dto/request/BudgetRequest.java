@@ -1,5 +1,6 @@
 package com.financetracker.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,14 +10,20 @@ import java.math.BigDecimal;
 
 /**
  * DTO for budget creation/update request
+ * Validates budget amount, category, and alert threshold
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class BudgetRequest {
 
+    @NotBlank(message = "Budget name is required")
+    @Size(min = 2, max = 50, message = "Budget name must be between 2 and 50 characters")
+    private String name;
+
     @NotNull(message = "Category ID is required")
     @Positive(message = "Category ID must be positive")
+    @JsonProperty("category_id")
     private Long categoryId;
 
     @NotNull(message = "Budget amount is required")
@@ -36,6 +43,7 @@ public class BudgetRequest {
 
     @DecimalMin(value = "0", message = "Alert threshold must be between 0 and 100")
     @DecimalMax(value = "100", message = "Alert threshold must be between 0 and 100")
+    @JsonProperty("alert_threshold")
     private BigDecimal alertThreshold;
 
     @Size(max = 500, message = "Notes must not exceed 500 characters")

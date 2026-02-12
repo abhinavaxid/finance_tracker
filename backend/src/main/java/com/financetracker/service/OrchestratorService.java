@@ -26,7 +26,7 @@ public class OrchestratorService {
      * Daily task: Process recurring transactions
      * Scheduled to run every day at 01:00 AM
      */
-    @Scheduled(cron = "0 1 * * * ?")
+    @Scheduled(cron = "0 0 1 * * ?")
     public void dailyProcessRecurringTransactions() {
         try {
             log.info("Starting daily recurring transaction processing...");
@@ -41,7 +41,7 @@ public class OrchestratorService {
      * Daily task: Generate insights
      * Scheduled to run every day at 02:00 AM
      */
-    @Scheduled(cron = "0 2 * * * ?")
+    @Scheduled(cron = "0 0 2 * * ?")
     public void dailyGenerateInsights() {
         try {
             log.info("Starting daily insight generation...");
@@ -56,7 +56,7 @@ public class OrchestratorService {
      * Weekly task: Send weekly summary emails
      * Scheduled to run every Monday at 08:00 AM
      */
-    @Scheduled(cron = "0 0 8 * * MON ?")
+    @Scheduled(cron = "0 0 8 ? * MON")
     public void weeklySendSummaryEmails() {
         try {
             log.info("Starting weekly summary email sending...");
@@ -71,7 +71,7 @@ public class OrchestratorService {
      * Check budgets and send alerts
      * Scheduled to run every 6 hours
      */
-    @Scheduled(cron = "0 */6 * * * ?")
+    @Scheduled(cron = "0 0 */6 * * ?")
     public void checkBudgetsAndSendAlerts() {
         try {
             log.info("Starting budget alert check...");
@@ -86,7 +86,7 @@ public class OrchestratorService {
      * Perform database cleanup
      * Scheduled to run weekly on Saturday at 03:00 AM
      */
-    @Scheduled(cron = "0 0 3 * * SAT ?")
+    @Scheduled(cron = "0 0 3 ? * SAT")
     public void performCleanup() {
         try {
             log.info("Starting database cleanup...");

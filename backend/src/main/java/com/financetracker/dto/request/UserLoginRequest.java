@@ -6,9 +6,11 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 /**
  * DTO for user login request
+ * Validates email format and password presence
  */
 @Data
 @NoArgsConstructor
@@ -20,6 +22,7 @@ public class UserLoginRequest {
     private String email;
 
     @NotBlank(message = "Password is required")
+    @Size(min = 1, message = "Password cannot be empty")
     private String password;
     
     private boolean rememberMe = false;

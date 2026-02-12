@@ -42,8 +42,12 @@ public interface InsightRepository extends JpaRepository<Insight, Long> {
     /**
      * Find recent insights for user
      */
-    @Query("SELECT i FROM Insight i WHERE i.user = :user AND i.isDismissed = false ORDER BY i.createdAt DESC LIMIT 5")
-    List<Insight> findRecentInsights(@Param("user") User user);
+    List<Insight> findTop5ByUserAndIsDismissedFalseOrderByCreatedAtDesc(User user);
+    
+    // Alias method for backward compatibility
+    default List<Insight> findRecentInsights(User user) {
+        return findTop5ByUserAndIsDismissedFalseOrderByCreatedAtDesc(user);
+    }
 
     /**
      * Find insights by category
