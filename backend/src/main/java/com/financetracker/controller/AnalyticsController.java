@@ -18,7 +18,7 @@ import java.util.List;
  * REST Controller for analytics and insights
  */
 @RestController
-@RequestMapping("/api/analytics")
+@RequestMapping("/analytics")
 @RequiredArgsConstructor
 @Slf4j
 public class AnalyticsController {

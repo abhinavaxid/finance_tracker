@@ -22,7 +22,7 @@ import java.util.List;
  * REST Controller for budget management
  */
 @RestController
-@RequestMapping("/api/budgets")
+@RequestMapping("/budgets")
 @RequiredArgsConstructor
 @Slf4j
 public class BudgetController {

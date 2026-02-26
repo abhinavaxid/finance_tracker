@@ -2,6 +2,10 @@ package com.financetracker.controller;
 
 import com.financetracker.dto.request.TransactionRequest;
 import com.financetracker.dto.response.TransactionResponse;
+import com.financetracker.dto.mcp.MCPTransactionRequest;
+import com.financetracker.dto.mcp.MCPResponse;
+import com.financetracker.mcp.MCPException;
+import com.financetracker.mcp.MCPTransactionService;
 import com.financetracker.model.Category;
 import com.financetracker.model.Transaction;
 import com.financetracker.model.User;
@@ -27,12 +31,13 @@ import java.util.List;
  * REST Controller for transaction management
  */
 @RestController
-@RequestMapping("/api/transactions")
+@RequestMapping("/transactions")
 @RequiredArgsConstructor
 @Slf4j
 public class TransactionController {
 
     private final TransactionService transactionService;
+    private final MCPTransactionService mcpTransactionService;
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
 
@@ -200,5 +205,128 @@ public class TransactionController {
         log.info("Deleting transaction: {}", id);
         transactionService.deleteTransaction(id);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Process transaction request from MCP (Model Context Protocol)
+     * Handles natural language input parsed by GLM-5/Claude
+     * POST /api/transactions/mcp/process
+     */
+    @PostMapping("/mcp/process")
+    public ResponseEntity<MCPResponse> processMCPTransaction(
+            @Valid @RequestBody MCPTransactionRequest mcpRequest) {
+        log.info("Processing MCP transaction request - action: {}, originalInput: {}", 
+                mcpRequest.getAction(), mcpRequest.getOriginalInput());
+
+        try {
+            Long userId = SecurityUtils.getCurrentUserId();
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            String action = mcpRequest.getAction() != null ? mcpRequest.getAction().toUpperCase() : "CREATE";
+
+            switch (action) {
+                case "CREATE":
+                    return handleMCPCreate(user, mcpRequest);
+                case "READ":
+                    return handleMCPRead(user, mcpRequest);
+                case "UPDATE":
+                    return handleMCPUpdate(user, mcpRequest);
+                case "DELETE":
+                    return handleMCPDelete(user, mcpRequest);
+                default:
+                    return ResponseEntity.badRequest()
+                            .body(MCPResponse.error("INVALID_ACTION", "Unknown action: " + action));
+            }
+        } catch (MCPException e) {
+            log.error("MCP processing error: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body(MCPResponse.error(e.getErrorCode(), e.getMessage()));
+        } catch (Exception e) {
+            log.error("Unexpected error processing MCP request", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(MCPResponse.error("INTERNAL_ERROR", "An unexpected error occurred: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Handle MCP CREATE action
+     */
+    private ResponseEntity<MCPResponse> handleMCPCreate(User user, MCPTransactionRequest mcpRequest) throws MCPException {
+        if (mcpRequest.getAmount() == null || mcpRequest.getCategoryHint() == null) {
+            throw new MCPException("Amount and category are required for transaction creation");
+        }
+
+        TransactionResponse transaction = mcpTransactionService.createTransactionFromMCP(
+                user,
+                mcpRequest.getAmount(),
+                mcpRequest.getCategoryHint(),
+                mcpRequest.getType(),
+                mcpRequest.getDescription(),
+                mcpRequest.getTransactionDate(),
+                mcpRequest.getPaymentMethod()
+        );
+
+        String confirmationMessage = formatConfirmationMessage(transaction, mcpRequest);
+        MCPResponse response = MCPResponse.success(confirmationMessage, transaction);
+        response.setAction("CREATE");
+        response.setConfidence(mcpRequest.getConfidence());
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    /**
+     * Handle MCP READ action
+     */
+    private ResponseEntity<MCPResponse> handleMCPRead(User user, MCPTransactionRequest mcpRequest) throws MCPException {
+        if (mcpRequest.getTransactionId() == null) {
+            throw new MCPException("Transaction ID is required for read operation");
+        }
+
+        TransactionResponse transaction = mcpTransactionService.getTransaction(
+                mcpRequest.getTransactionId(), user);
+
+        MCPResponse response = MCPResponse.success("Transaction retrieved successfully", transaction);
+        response.setAction("READ");
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Handle MCP UPDATE action (placeholder - can be extended)
+     */
+    private ResponseEntity<MCPResponse> handleMCPUpdate(User user, MCPTransactionRequest mcpRequest) throws MCPException {
+        // Future implementation: Update transaction details
+        throw new MCPException("UPDATE action is not yet implemented", "NOT_IMPLEMENTED");
+    }
+
+    /**
+     * Handle MCP DELETE action
+     */
+    private ResponseEntity<MCPResponse> handleMCPDelete(User user, MCPTransactionRequest mcpRequest) throws MCPException {
+        if (mcpRequest.getTransactionId() == null) {
+            throw new MCPException("Transaction ID is required for delete operation");
+        }
+
+        mcpTransactionService.deleteTransaction(mcpRequest.getTransactionId(), user);
+
+        MCPResponse response = MCPResponse.success("Transaction deleted successfully", null);
+        response.setAction("DELETE");
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Format user-friendly confirmation message
+     */
+    private String formatConfirmationMessage(TransactionResponse transaction, MCPTransactionRequest mcpRequest) {
+        String typeSymbol = "INCOME".equalsIgnoreCase(transaction.getType()) ? "+" : "−";
+        String formattedAmount = String.format("%.2f", transaction.getAmount());
+        
+        return String.format("✓ %s ₹%s added to %s on %s",
+                typeSymbol,
+                formattedAmount,
+                transaction.getCategoryName(),
+                transaction.getTransactionDate());
     }
 }

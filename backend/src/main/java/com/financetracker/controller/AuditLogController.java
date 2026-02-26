@@ -17,7 +17,7 @@ import java.util.List;
  * REST Controller for audit log management
  */
 @RestController
-@RequestMapping("/api/audit-logs")
+@RequestMapping("/audit-logs")
 @RequiredArgsConstructor
 @Slf4j
 public class AuditLogController {

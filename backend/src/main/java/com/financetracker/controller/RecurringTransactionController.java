@@ -21,7 +21,7 @@ import java.util.List;
  * REST Controller for recurring transaction management
  */
 @RestController
-@RequestMapping("/api/recurring-transactions")
+@RequestMapping("/recurring-transactions")
 @RequiredArgsConstructor
 @Slf4j
 public class RecurringTransactionController {

@@ -17,7 +17,7 @@ import javax.validation.Valid;
  * REST Controller for user profile management
  */
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/users")
 @RequiredArgsConstructor
 @Slf4j
 public class UserController {

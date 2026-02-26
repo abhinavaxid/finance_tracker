@@ -34,6 +34,40 @@ build/
 
 # Credentials
 .env
+.env.local
+.env.*.local
 
 # Mac
 *.DS_Store
+
+# Python / MCP Server
+mcp-server/venv/
+mcp-server/__pycache__/
+mcp-server/*.pyc
+mcp-server/**/*.pyc
+mcp-server/.pytest_cache/
+mcp-server/.venv/
+mcp-server/env/
+mcp-server/ENV/
+mcp-server/*.egg-info/
+mcp-server/dist/
+mcp-server/build/
+mcp-server/.env
+
+# IDE
+*.pyc
+__pycache__/
+.pytest_cache/
+*.egg-info/
+
+# Test artifacts
+test_results/
+coverage_html/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db

@@ -16,7 +16,7 @@ import java.util.List;
  * REST Controller for notification management
  */
 @RestController
-@RequestMapping("/api/notifications")
+@RequestMapping("/notifications")
 @RequiredArgsConstructor
 @Slf4j
 public class NotificationController {

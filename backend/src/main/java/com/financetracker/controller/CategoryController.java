@@ -20,7 +20,7 @@ import java.util.List;
  * REST Controller for category management
  */
 @RestController
-@RequestMapping("/api/categories")
+@RequestMapping("/categories")
 @RequiredArgsConstructor
 @Slf4j
 public class CategoryController {

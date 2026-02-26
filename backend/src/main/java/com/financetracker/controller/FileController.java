@@ -20,7 +20,7 @@ import java.util.List;
  * REST Controller for file upload/download management
  */
 @RestController
-@RequestMapping("/api/files")
+@RequestMapping("/files")
 @RequiredArgsConstructor
 @Slf4j
 public class FileController {

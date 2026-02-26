@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
  * REST Controller for user preferences and settings
  */
 @RestController
-@RequestMapping("/api/preferences")
+@RequestMapping("/preferences")
 @RequiredArgsConstructor
 @Slf4j
 public class PreferenceController {

@@ -22,7 +22,7 @@ import javax.validation.Valid;
  * Supports both JWT and Spring Session authentication
  */
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 @Slf4j
 public class AuthController {
